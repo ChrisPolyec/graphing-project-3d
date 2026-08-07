@@ -10,22 +10,19 @@
   </head>
   <body>
     <div id="app">
-      <!-- Three.js Canvas -->
+     
       <canvas id="webgl-canvas"></canvas>
 
-      <!-- Glassmorphism UI Panel -->
       <div id="ui-panel">
         <div class="panel-header">
           <h1>Graficadora 3D</h1>
         </div>
 
-        <!-- Mode Selector -->
         <div class="mode-selector">
           <button id="btn-mode-vectors" class="mode-btn active">Vectores</button>
-          <button id="btn-mode-gps" class="mode-btn">Globo GPS</button>
+          <button id="btn-mode-gps" class="mode-btn">GPS</button>
         </div>
 
-        <!-- Vector Form -->
         <form id="form-vectors" class="form-group">
           <div class="input-field">
             <label for="vec-magnitude">Magnitud (Velocidad Inicial)</label>
@@ -39,10 +36,9 @@
             <label for="vec-azimuth">Ángulo de Azimut (grados)</label>
             <input type="number" id="vec-azimuth" step="any" placeholder="ej. 0" required />
           </div>
-          <button type="submit" class="submit-btn">Graficar Trayectoria</button>
+          <button type="submit" class="submit-btn">Graficar trayectoria</button>
         </form>
 
-        <!-- GPS Form -->
         <form id="form-gps" class="form-group hidden">
           <div class="input-field">
             <label for="gps-lat">Latitud (grados)</label>
@@ -52,17 +48,15 @@
             <label for="gps-lng">Longitud (grados)</label>
             <input type="number" id="gps-lng" step="any" placeholder="ej. -74.0060" required />
           </div>
-          <button type="submit" id="btn-submit-gps" class="submit-btn">Localizar y Obtener Altitud</button>
+          <button type="submit" id="btn-submit-gps" class="submit-btn">Localizar y obtener altitud</button>
         </form>
       </div>
 
-      <!-- Loading Overlay -->
       <div id="loading-overlay">
         <div class="spinner"></div>
         <p>Obteniendo datos de altitud...</p>
       </div>
 
-      <!-- Notification Toast -->
       <div id="notification"></div>
     </div>
     
