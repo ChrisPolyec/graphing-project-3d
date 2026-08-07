@@ -16,50 +16,50 @@
       <!-- Glassmorphism UI Panel -->
       <div id="ui-panel">
         <div class="panel-header">
-          <h1>3D Grapher</h1>
+          <h1>Graficadora 3D</h1>
         </div>
 
         <!-- Mode Selector -->
         <div class="mode-selector">
-          <button id="btn-mode-vectors" class="mode-btn active">Vectors</button>
-          <button id="btn-mode-gps" class="mode-btn">GPS Globe</button>
+          <button id="btn-mode-vectors" class="mode-btn active">Vectores</button>
+          <button id="btn-mode-gps" class="mode-btn">Globo GPS</button>
         </div>
 
         <!-- Vector Form -->
         <form id="form-vectors" class="form-group">
           <div class="input-field">
-            <label for="vec-magnitude">Magnitude (Initial Velocity)</label>
-            <input type="number" id="vec-magnitude" step="any" min="0.1" placeholder="e.g. 50" required />
+            <label for="vec-magnitude">Magnitud (Velocidad Inicial)</label>
+            <input type="number" id="vec-magnitude" step="any" min="0.1" placeholder="ej. 50" required />
           </div>
           <div class="input-field">
-            <label for="vec-elevation">Elevation Angle (degrees)</label>
-            <input type="number" id="vec-elevation" step="any" placeholder="e.g. 45" required />
+            <label for="vec-elevation">Ángulo de Elevación (grados)</label>
+            <input type="number" id="vec-elevation" step="any" placeholder="ej. 45" required />
           </div>
           <div class="input-field">
-            <label for="vec-azimuth">Azimuth Angle (degrees)</label>
-            <input type="number" id="vec-azimuth" step="any" placeholder="e.g. 0" required />
+            <label for="vec-azimuth">Ángulo de Azimut (grados)</label>
+            <input type="number" id="vec-azimuth" step="any" placeholder="ej. 0" required />
           </div>
-          <button type="submit" class="submit-btn">Plot Trajectory</button>
+          <button type="submit" class="submit-btn">Graficar Trayectoria</button>
         </form>
 
         <!-- GPS Form -->
         <form id="form-gps" class="form-group hidden">
           <div class="input-field">
-            <label for="gps-lat">Latitude (degrees)</label>
-            <input type="number" id="gps-lat" step="any" placeholder="e.g. 40.7128" required />
+            <label for="gps-lat">Latitud (grados)</label>
+            <input type="number" id="gps-lat" step="any" placeholder="ej. 40.7128" required />
           </div>
           <div class="input-field">
-            <label for="gps-lng">Longitude (degrees)</label>
-            <input type="number" id="gps-lng" step="any" placeholder="e.g. -74.0060" required />
+            <label for="gps-lng">Longitud (grados)</label>
+            <input type="number" id="gps-lng" step="any" placeholder="ej. -74.0060" required />
           </div>
-          <button type="submit" id="btn-submit-gps" class="submit-btn">Locate & Fetch Elevation</button>
+          <button type="submit" id="btn-submit-gps" class="submit-btn">Localizar y Obtener Altitud</button>
         </form>
       </div>
 
       <!-- Loading Overlay -->
       <div id="loading-overlay">
         <div class="spinner"></div>
-        <p>Fetching elevation data...</p>
+        <p>Obteniendo datos de altitud...</p>
       </div>
 
       <!-- Notification Toast -->
