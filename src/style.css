@@ -1,0 +1,392 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    overflow: hidden; 
+    width: 100vw;
+    height: 100vh;
+    background-color: #050505;
+    font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    color: white;
+}
+
+#app {
+    width: 100%;
+    height: 100%;
+    position: relative;
+}
+
+#webgl-canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+}
+
+/* Glassmorphism UI Panel */
+#ui-panel {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    width: 320px;
+    background: rgba(20, 20, 25, 0.65);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 16px;
+    padding: 24px;
+    z-index: 10;
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.4);
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.panel-header h1 {
+    font-size: 1.3rem;
+    font-weight: 600;
+    text-align: center;
+    margin-bottom: 15px;
+    color: #ffffff;
+    letter-spacing: 0.5px;
+}
+
+/* Mode Selector */
+.mode-selector {
+    display: flex;
+    background: rgba(0, 0, 0, 0.6);
+    border-radius: 8px;
+    overflow: hidden;
+    margin-bottom: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.mode-btn {
+    flex: 1;
+    padding: 10px;
+    background: none;
+    border: none;
+    color: #888;
+    cursor: pointer;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    font-family: inherit;
+}
+
+.mode-btn.active {
+    background: rgba(60, 100, 255, 0.4);
+    color: #fff;
+}
+
+.mode-btn:not(.active):hover {
+    color: #ddd;
+    background: rgba(255, 255, 255, 0.05);
+}
+
+/* Forms */
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.input-field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.input-field label {
+    font-size: 0.85rem;
+    color: #bbb;
+    font-weight: 500;
+}
+
+.input-field input {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 6px;
+    padding: 10px 12px;
+    color: white;
+    font-family: inherit;
+    outline: none;
+    transition: all 0.2s ease;
+}
+
+.input-field input:focus {
+    border-color: rgba(80, 120, 255, 0.8);
+    background: rgba(255, 255, 255, 0.1);
+    box-shadow: 0 0 0 3px rgba(80, 120, 255, 0.2);
+}
+
+/* Chrome, Safari, Edge, Opera - Remove arrows from number input */
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+/* Firefox - Remove arrows from number input */
+input[type=number] {
+  -moz-appearance: textfield;
+}
+
+.submit-btn {
+    margin-top: 10px;
+    padding: 12px;
+    background: linear-gradient(135deg, #4f46e5, #3b82f6);
+    border: none;
+    border-radius: 6px;
+    color: white;
+    font-weight: 600;
+    cursor: pointer;
+    transition: opacity 0.2s ease, transform 0.1s ease;
+    font-family: inherit;
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
+.submit-btn:hover {
+    opacity: 0.9;
+}
+
+.submit-btn:active {
+    transform: translateY(1px);
+}
+
+.submit-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* Loading Overlay */
+#loading-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    z-index: 20;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    color: white;
+    gap: 20px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+}
+
+#loading-overlay.visible {
+    opacity: 1;
+    pointer-events: all;
+}
+
+.spinner {
+    width: 48px;
+    height: 48px;
+    border: 4px solid rgba(255,255,255,0.1);
+    border-top: 4px solid #3b82f6;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.hidden {
+    display: none !important;
+}
+
+/* Notification Toast */
+#notification {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    padding: 15px 25px;
+    border-radius: 8px;
+    background: rgba(220, 38, 38, 0.95);
+    color: white;
+    z-index: 100;
+    box-shadow: 0 8px 16px rgba(0,0,0,0.4);
+    opacity: 0;
+    transform: translateY(20px);
+    transition: all 0.3s ease;
+    pointer-events: none;
+    font-weight: 500;
+}
+
+#notification.show {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* Home Screen Styles */
+#home-screen {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, rgba(10, 10, 20, 0.9), rgba(20, 20, 40, 0.95));
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    z-index: 50;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: opacity 0.4s ease, transform 0.4s ease;
+    opacity: 0;
+    pointer-events: none;
+}
+
+#home-screen.visible {
+    opacity: 1;
+    pointer-events: all;
+    transform: scale(1);
+}
+
+.home-content {
+    background: rgba(30, 30, 40, 0.6);
+    padding: 40px;
+    border-radius: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5);
+    text-align: center;
+    max-width: 600px;
+    width: 90%;
+}
+
+.home-title {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin-bottom: 10px;
+    background: linear-gradient(135deg, #4f46e5, #00d4ff);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.home-subtitle {
+    font-size: 1.1rem;
+    color: #aaa;
+    margin-bottom: 30px;
+}
+
+.team-legend {
+    background: rgba(0, 0, 0, 0.3);
+    padding: 20px;
+    border-radius: 12px;
+    text-align: left;
+    margin-bottom: 30px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.team-legend h2 {
+    font-size: 1.2rem;
+    margin-bottom: 15px;
+    color: #eee;
+    text-align: center;
+}
+
+.team-legend ul {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.team-legend li {
+    font-size: 0.9rem;
+    color: #ccc;
+    padding-left: 10px;
+    border-left: 3px solid #3b82f6;
+}
+
+.home-actions {
+    display: flex;
+    gap: 20px;
+    justify-content: center;
+}
+
+.action-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 15px 25px;
+    border-radius: 10px;
+    border: none;
+    font-size: 1.1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    flex: 1;
+}
+
+.vectors-btn {
+    background: rgba(79, 70, 229, 0.2);
+    color: #fff;
+    border: 1px solid rgba(79, 70, 229, 0.5);
+}
+.vectors-btn:hover {
+    background: rgba(79, 70, 229, 0.4);
+    transform: translateY(-2px);
+}
+
+.gps-btn {
+    background: rgba(0, 212, 255, 0.2);
+    color: #fff;
+    border: 1px solid rgba(0, 212, 255, 0.5);
+}
+.gps-btn:hover {
+    background: rgba(0, 212, 255, 0.4);
+    transform: translateY(-2px);
+}
+
+.btn-icon {
+    font-size: 1.4rem;
+}
+
+/* Panel Header & Back Button */
+.panel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.panel-header h1 {
+    margin-bottom: 0;
+}
+
+.back-btn {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: white;
+    padding: 5px 10px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    transition: all 0.2s ease;
+}
+
+.back-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+/* Help text styling */
+small {
+    color: #888;
+    font-size: 0.75rem;
+    margin-top: -2px;
+}
