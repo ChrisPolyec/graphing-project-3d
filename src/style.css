@@ -8,12 +8,225 @@ body {
     overflow: hidden; 
     width: 100vw;
     height: 100vh;
-    background-color: #111111;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #050505;
+    font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     color: white;
 }
 
 #app {
     width: 100%;
     height: 100%;
+    position: relative;
+}
+
+#webgl-canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+}
+
+/* Glassmorphism UI Panel */
+#ui-panel {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    width: 320px;
+    background: rgba(20, 20, 25, 0.65);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 16px;
+    padding: 24px;
+    z-index: 10;
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.4);
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.panel-header h1 {
+    font-size: 1.3rem;
+    font-weight: 600;
+    text-align: center;
+    margin-bottom: 15px;
+    color: #ffffff;
+    letter-spacing: 0.5px;
+}
+
+/* Mode Selector */
+.mode-selector {
+    display: flex;
+    background: rgba(0, 0, 0, 0.6);
+    border-radius: 8px;
+    overflow: hidden;
+    margin-bottom: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.mode-btn {
+    flex: 1;
+    padding: 10px;
+    background: none;
+    border: none;
+    color: #888;
+    cursor: pointer;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    font-family: inherit;
+}
+
+.mode-btn.active {
+    background: rgba(60, 100, 255, 0.4);
+    color: #fff;
+}
+
+.mode-btn:not(.active):hover {
+    color: #ddd;
+    background: rgba(255, 255, 255, 0.05);
+}
+
+/* Forms */
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.input-field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.input-field label {
+    font-size: 0.85rem;
+    color: #bbb;
+    font-weight: 500;
+}
+
+.input-field input {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 6px;
+    padding: 10px 12px;
+    color: white;
+    font-family: inherit;
+    outline: none;
+    transition: all 0.2s ease;
+}
+
+.input-field input:focus {
+    border-color: rgba(80, 120, 255, 0.8);
+    background: rgba(255, 255, 255, 0.1);
+    box-shadow: 0 0 0 3px rgba(80, 120, 255, 0.2);
+}
+
+/* Chrome, Safari, Edge, Opera - Remove arrows from number input */
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+/* Firefox - Remove arrows from number input */
+input[type=number] {
+  -moz-appearance: textfield;
+}
+
+.submit-btn {
+    margin-top: 10px;
+    padding: 12px;
+    background: linear-gradient(135deg, #4f46e5, #3b82f6);
+    border: none;
+    border-radius: 6px;
+    color: white;
+    font-weight: 600;
+    cursor: pointer;
+    transition: opacity 0.2s ease, transform 0.1s ease;
+    font-family: inherit;
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
+.submit-btn:hover {
+    opacity: 0.9;
+}
+
+.submit-btn:active {
+    transform: translateY(1px);
+}
+
+.submit-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* Loading Overlay */
+#loading-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    z-index: 20;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    color: white;
+    gap: 20px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+}
+
+#loading-overlay.visible {
+    opacity: 1;
+    pointer-events: all;
+}
+
+.spinner {
+    width: 48px;
+    height: 48px;
+    border: 4px solid rgba(255,255,255,0.1);
+    border-top: 4px solid #3b82f6;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.hidden {
+    display: none !important;
+}
+
+/* Notification Toast */
+#notification {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    padding: 15px 25px;
+    border-radius: 8px;
+    background: rgba(220, 38, 38, 0.95);
+    color: white;
+    z-index: 100;
+    box-shadow: 0 8px 16px rgba(0,0,0,0.4);
+    opacity: 0;
+    transform: translateY(20px);
+    transition: all 0.3s ease;
+    pointer-events: none;
+    font-weight: 500;
+}
+
+#notification.show {
+    opacity: 1;
+    transform: translateY(0);
 }
