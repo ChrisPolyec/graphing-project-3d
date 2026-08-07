@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Graficadora 3D</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  </head>
+  <body>
+    <div id="app">
+     
+      <canvas id="webgl-canvas"></canvas>
+
+      <div id="ui-panel">
+        <div class="panel-header">
+          <h1>Graficadora 3D</h1>
+        </div>
+
+        <div class="mode-selector">
+          <button id="btn-mode-vectors" class="mode-btn active">Vectores</button>
+          <button id="btn-mode-gps" class="mode-btn">GPS</button>
+        </div>
+
+        <form id="form-vectors" class="form-group">
+          <div class="input-field">
+            <label for="vec-magnitude">Magnitud (Velocidad Inicial)</label>
+            <input type="number" id="vec-magnitude" step="any" min="0.1" placeholder="ej. 50" required />
+          </div>
+          <div class="input-field">
+            <label for="vec-elevation">Ángulo de Elevación (grados)</label>
+            <input type="number" id="vec-elevation" step="any" placeholder="ej. 45" required />
+          </div>
+          <div class="input-field">
+            <label for="vec-azimuth">Ángulo de Azimut (grados)</label>
+            <input type="number" id="vec-azimuth" step="any" placeholder="ej. 0" required />
+          </div>
+          <button type="submit" class="submit-btn">Graficar trayectoria</button>
+        </form>
+
+        <form id="form-gps" class="form-group hidden">
+          <div class="input-field">
+            <label for="gps-lat">Latitud (grados)</label>
+            <input type="number" id="gps-lat" step="any" placeholder="ej. 40.7128" required />
+          </div>
+          <div class="input-field">
+            <label for="gps-lng">Longitud (grados)</label>
+            <input type="number" id="gps-lng" step="any" placeholder="ej. -74.0060" required />
+          </div>
+          <button type="submit" id="btn-submit-gps" class="submit-btn">Localizar y obtener altitud</button>
+        </form>
+      </div>
+
+      <div id="loading-overlay">
+        <div class="spinner"></div>
+        <p>Obteniendo datos de altitud...</p>
+      </div>
+
+      <div id="notification"></div>
+    </div>
+    
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
