@@ -66,10 +66,7 @@ export class GPSRender implements GPSRenderModule {
     this.stopAnimationLoop();
     
     // Cleanup marker if exists
-    if (this.marker) {
-        this.earthGroup.remove(this.marker);
-        this.marker = null;
-    }
+    this.clearMarker();
     
     // Cleanup lights
     this.lights.forEach(light => this.earthGroup.remove(light));
@@ -78,9 +75,7 @@ export class GPSRender implements GPSRenderModule {
 
   plotLocation(data: GPSMathResults): void {
     // Eliminar marcador anterior si existe
-    if (this.marker) {
-        this.earthGroup.remove(this.marker);
-    }
+    this.clearMarker();
     
     const pos = data.cartesianCoordinate;
     // Escalar la posición para la representación visual (Radio visual = ~6.371)
@@ -229,6 +224,20 @@ export class GPSRender implements GPSRenderModule {
       if (this.animationFrameId !== null) {
           cancelAnimationFrame(this.animationFrameId);
           this.animationFrameId = null;
+      }
+  }
+
+  private clearMarker() {
+      if (this.marker) {
+          this.marker.children.forEach(child => {
+              if (child instanceof CSS2DObject) {
+                  if (child.element && child.element.parentNode) {
+                      child.element.parentNode.removeChild(child.element);
+                  }
+              }
+          });
+          this.earthGroup.remove(this.marker);
+          this.marker = null;
       }
   }
 }

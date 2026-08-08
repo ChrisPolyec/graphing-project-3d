@@ -15,12 +15,18 @@ export class UIManager {
     private notificationDiv: HTMLElement;
     private btnSubmitGps: HTMLButtonElement;
 
-    // New Home Screen elements
-    private homeScreen: HTMLElement;
     private uiPanel: HTMLElement;
-    private btnStartVectors: HTMLButtonElement;
-    private btnStartGps: HTMLButtonElement;
-    private btnBackHome: HTMLButtonElement;
+    private statusBar: HTMLElement;
+
+    // Modal elements
+    private btnInfo: HTMLButtonElement;
+    private infoModal: HTMLElement;
+    private btnCloseModal: HTMLButtonElement;
+    private modalBody: HTMLElement;
+
+    private btnCredits: HTMLButtonElement;
+    private creditsModal: HTMLElement;
+    private btnCloseCredits: HTMLButtonElement;
 
     public onVectorSubmit?: (inputs: VectorInputs) => void;
     public onGpsSubmit?: (inputs: GPSInputs) => void;
@@ -37,11 +43,17 @@ export class UIManager {
         this.btnSubmitGps = document.getElementById('btn-submit-gps') as HTMLButtonElement;
 
         // Init new elements
-        this.homeScreen = document.getElementById('home-screen') as HTMLElement;
         this.uiPanel = document.getElementById('ui-panel') as HTMLElement;
-        this.btnStartVectors = document.getElementById('btn-start-vectors') as HTMLButtonElement;
-        this.btnStartGps = document.getElementById('btn-start-gps') as HTMLButtonElement;
-        this.btnBackHome = document.getElementById('btn-back-home') as HTMLButtonElement;
+        this.statusBar = document.getElementById('status-bar') as HTMLElement;
+
+        this.btnInfo = document.getElementById('btn-info') as HTMLButtonElement;
+        this.infoModal = document.getElementById('info-modal') as HTMLElement;
+        this.btnCloseModal = document.getElementById('btn-close-modal') as HTMLButtonElement;
+        this.modalBody = document.getElementById('modal-body') as HTMLElement;
+
+        this.btnCredits = document.getElementById('btn-credits') as HTMLButtonElement;
+        this.creditsModal = document.getElementById('credits-modal') as HTMLElement;
+        this.btnCloseCredits = document.getElementById('btn-close-credits') as HTMLButtonElement;
 
         this.initEventListeners();
     }
@@ -49,11 +61,6 @@ export class UIManager {
     private initEventListeners() {
         this.btnModeVectors.addEventListener('click', () => this.setMode('VECTORS'));
         this.btnModeGps.addEventListener('click', () => this.setMode('GPS'));
-
-        // Home screen listeners
-        this.btnStartVectors.addEventListener('click', () => this.startMode('VECTORS'));
-        this.btnStartGps.addEventListener('click', () => this.startMode('GPS'));
-        this.btnBackHome.addEventListener('click', () => this.goHome());
 
         this.formVectors.addEventListener('submit', (e) => {
             e.preventDefault();
@@ -64,20 +71,24 @@ export class UIManager {
             e.preventDefault();
             this.handleGpsSubmit();
         });
-    }
 
-    private startMode(mode: AppMode) {
-        this.homeScreen.classList.remove('visible');
-        this.uiPanel.classList.remove('hidden');
-        this.setMode(mode);
-    }
+        // Modal listeners
+        this.btnInfo.addEventListener('click', () => this.showInfoModal());
+        this.btnCloseModal.addEventListener('click', () => this.hideInfoModal());
+        this.infoModal.addEventListener('click', (e) => {
+            if (e.target === this.infoModal) {
+                this.hideInfoModal();
+            }
+        });
 
-    private goHome() {
-        this.homeScreen.classList.add('visible');
-        this.uiPanel.classList.add('hidden');
-        if (this.onHome) {
-            this.onHome();
-        }
+        // Credits listeners
+        this.btnCredits.addEventListener('click', () => this.showCreditsModal());
+        this.btnCloseCredits.addEventListener('click', () => this.hideCreditsModal());
+        this.creditsModal.addEventListener('click', (e) => {
+            if (e.target === this.creditsModal) {
+                this.hideCreditsModal();
+            }
+        });
     }
 
     private setMode(mode: AppMode) {
@@ -99,6 +110,9 @@ export class UIManager {
         if (this.onModeChange) {
             this.onModeChange(mode);
         }
+
+        // Hide status bar when switching modes
+        this.hideStatusBar();
     }
 
     private handleVectorSubmit() {
@@ -111,14 +125,23 @@ export class UIManager {
         const azimuthAngle = parseFloat(aziInput.value);
 
         if (isNaN(magnitude) || isNaN(elevationAngle) || isNaN(azimuthAngle)) {
-            this.showError('Por favor, ingresa números válidos para los vectores.');
+            // Browsers usually prevent submission with empty/invalid inputs due to "required" and type="number"
             return;
         }
 
+        let hasError = false;
+
         if (magnitude <= 0) {
-            this.showError('La magnitud (velocidad) debe ser mayor a 0.');
-            return;
+            this.highlightInputError('vec-magnitude', 'La magnitud debe ser mayor a 0.');
+            hasError = true;
         }
+
+        if (elevationAngle < 0 || elevationAngle > 90) {
+            this.highlightInputError('vec-elevation', 'El ángulo debe estar entre 0 y 90 grados.');
+            hasError = true;
+        }
+
+        if (hasError) return;
 
         if (this.onVectorSubmit) {
             this.onVectorSubmit({ magnitude, elevationAngle, azimuthAngle });
@@ -133,19 +156,22 @@ export class UIManager {
         const longitude = parseFloat(lngInput.value);
 
         if (isNaN(latitude) || isNaN(longitude)) {
-            this.showError('Por favor, ingresa latitud y longitud válidas.');
             return;
         }
 
+        let hasError = false;
+
         if (latitude < -90 || latitude > 90) {
-            this.showError('La latitud debe estar entre -90 y 90 grados.');
-            return;
+            this.highlightInputError('gps-lat', 'La latitud debe estar entre -90 y 90 grados.');
+            hasError = true;
         }
 
         if (longitude < -180 || longitude > 180) {
-            this.showError('La longitud debe estar entre -180 y 180 grados.');
-            return;
+            this.highlightInputError('gps-lng', 'La longitud debe estar entre -180 y 180 grados.');
+            hasError = true;
         }
+
+        if (hasError) return;
 
         if (this.onGpsSubmit) {
             this.onGpsSubmit({ latitude, longitude });
@@ -170,5 +196,94 @@ export class UIManager {
         setTimeout(() => {
             this.notificationDiv.classList.remove('show');
         }, 4000);
+    }
+
+    public updateStatusBar(lat: number, lng: number) {
+        const formattedLat = lat.toFixed(4);
+        const formattedLng = lng.toFixed(4);
+        this.statusBar.textContent = `Latitud: ${formattedLat}°, Longitud: ${formattedLng}°`;
+        this.showStatusBar();
+    }
+
+    public showStatusBar() {
+        if (this.state.currentMode === 'GPS') {
+            this.statusBar.classList.remove('hidden');
+        }
+    }
+
+    public hideStatusBar() {
+        this.statusBar.classList.add('hidden');
+    }
+
+    public setGpsInputs(lat: number, lng: number) {
+        const latInput = document.getElementById('gps-lat') as HTMLInputElement;
+        const lngInput = document.getElementById('gps-lng') as HTMLInputElement;
+        latInput.value = lat.toFixed(4);
+        lngInput.value = lng.toFixed(4);
+    }
+
+    private highlightInputError(inputId: string, message: string) {
+        const input = document.getElementById(inputId) as HTMLInputElement;
+        if (!input) return;
+        
+        input.classList.add('input-error');
+        
+        const small = input.nextElementSibling;
+        if (small && small.tagName === 'SMALL') {
+            if (!small.hasAttribute('data-original')) {
+                small.setAttribute('data-original', small.textContent || '');
+            }
+            small.textContent = message;
+            small.classList.add('error-text');
+        }
+
+        const onInput = () => {
+            input.classList.remove('input-error');
+            if (small && small.tagName === 'SMALL') {
+                small.textContent = small.getAttribute('data-original') || '';
+                small.classList.remove('error-text');
+            }
+            input.removeEventListener('input', onInput);
+        };
+        input.addEventListener('input', onInput);
+    }
+
+    private showInfoModal() {
+        if (this.state.currentMode === 'VECTORS') {
+            this.modalBody.innerHTML = `
+                <p><strong>Modo Vectores 3D</strong></p>
+                <p style="margin-top: 8px;">Este módulo te permite visualizar la trayectoria parabólica de un proyectil en un espacio tridimensional. Para usarlo, debes definir tres parámetros fundamentales:</p>
+                <ul>
+                    <li><strong>Magnitud (Velocidad Inicial):</strong> Es la fuerza o rapidez con la que se lanza el proyectil. Debe ser mayor a 0 (ej. 50 m/s). A mayor magnitud, más lejos llegará.</li>
+                    <li><strong>Ángulo de Elevación:</strong> Determina la inclinación vertical del lanzamiento. Debe estar entre <strong>0° y 90°</strong>. (Ej. 45° suele dar el alcance máximo).</li>
+                    <li><strong>Ángulo de Azimut:</strong> Controla la rotación horizontal (hacia dónde apunta en el mapa). 0° apunta al eje X.</li>
+                </ul>
+                <p style="color: #bbb;"><em>Una vez ingresados los datos, haz clic en "Graficar trayectoria 3D" y el motor matemático calculará la parábola perfecta para renderizarla.</em></p>
+            `;
+        } else {
+            this.modalBody.innerHTML = `
+                <p><strong>Modo GPS 3D</strong></p>
+                <p style="margin-top: 8px;">Este módulo interactivo te permite explorar nuestro planeta y encontrar la altitud exacta de cualquier punto geográfico utilizando una API satelital.</p>
+                <ul>
+                    <li><strong>Exploración Libre:</strong> Utiliza el clic izquierdo para rotar la Tierra y la rueda del ratón para acercarte o alejarte.</li>
+                    <li><strong>Rastreo en Vivo:</strong> Al pasar el cursor sobre la superficie del globo, la barra de estado inferior mostrará las coordenadas exactas de esa posición en tiempo real.</li>
+                    <li><strong>Selección Rápida:</strong> Haz <strong>clic</strong> sobre cualquier país o región para autocompletar automáticamente el formulario de Latitud y Longitud.</li>
+                </ul>
+                <p style="color: #bbb;"><em>Al hacer clic en "Ubicar", el sistema obtendrá la altura real sobre el nivel del mar de esa zona, y colocará un marcador exacto.</em></p>
+            `;
+        }
+        this.infoModal.classList.remove('hidden');
+    }
+
+    private hideInfoModal() {
+        this.infoModal.classList.add('hidden');
+    }
+
+    private showCreditsModal() {
+        this.creditsModal.classList.remove('hidden');
+    }
+
+    private hideCreditsModal() {
+        this.creditsModal.classList.add('hidden');
     }
 }

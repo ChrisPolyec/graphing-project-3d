@@ -1,3 +1,4 @@
+import * as THREE from 'three';
 import './style.css';
 import { SceneManager } from './core/SceneManager';
 import { UIManager } from './core/UIManager';
@@ -6,6 +7,7 @@ import { calculateProjectile } from './vectors/vector-math';
 import { VectorRender } from './vectors/vector-render';
 import { GPSRender } from './gps/gps-render';
 import { latLngAltToXYZ } from './gps/gps-math';
+import type { AppMode } from './interfaces';
 
 document.addEventListener('DOMContentLoaded', () => {
     const canvas = document.getElementById('webgl-canvas') as HTMLCanvasElement;
@@ -21,7 +23,58 @@ document.addEventListener('DOMContentLoaded', () => {
     const vectorRenderModule = new VectorRender(scene, camera);
     const gpsRenderModule = new GPSRender(scene, camera);
 
+    let currentMode: AppMode | 'HOME' = 'HOME';
+
     console.log('[Team 1] Core App Initialized. Scene and UI are ready.', sceneManager);
+
+    // --- Raycasting for GPS Mode ---
+    const raycaster = new THREE.Raycaster();
+    const mouse = new THREE.Vector2();
+
+    const handleRaycast = (event: MouseEvent, action: 'hover' | 'click') => {
+        if (currentMode !== 'GPS') return;
+
+        mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+        mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+
+        raycaster.setFromCamera(mouse, camera);
+
+        const gpsGroup = scene.children.find(child => child.name === 'GPSRenderGroup');
+        if (!gpsGroup || !gpsGroup.visible) return;
+
+        const intersects = raycaster.intersectObjects(gpsGroup.children, true);
+        const validIntersect = intersects.find(i => i.object.type === 'Mesh' && i.object.name !== 'PulsingRing');
+
+        if (validIntersect) {
+            const point = validIntersect.point;
+            const radius = 6.371; // Earth visual radius
+
+            // Reverse math from Cartesian to Lat/Lng
+            let lat = Math.asin(point.y / radius) * (180 / Math.PI);
+            let lng = Math.atan2(-point.z, point.x) * (180 / Math.PI);
+
+            // Clamp just in case due to float precision
+            if (lat > 90) lat = 90;
+            if (lat < -90) lat = -90;
+
+            if (action === 'hover') {
+                uiManager.updateStatusBar(lat, lng);
+            } else if (action === 'click') {
+                uiManager.setGpsInputs(lat, lng);
+            }
+        } else {
+            if (action === 'hover') {
+                uiManager.hideStatusBar();
+            }
+        }
+    };
+
+    window.addEventListener('mousemove', (e) => handleRaycast(e, 'hover'));
+    window.addEventListener('click', (e) => {
+        // Ignore clicks on the UI panel
+        if ((e.target as HTMLElement).closest('#ui-panel') || (e.target as HTMLElement).closest('#home-screen')) return;
+        handleRaycast(e, 'click');
+    });
 
     // --- Vector Mode Integration ---
     uiManager.onVectorSubmit = (inputs) => {
@@ -70,19 +123,24 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Mode Switching Logic ---
     uiManager.onModeChange = (mode) => {
+        currentMode = mode;
         console.log(`[Team 1] Switched to mode: ${mode}`);
         if (mode === 'VECTORS') {
             gpsRenderModule.deactivate();
             vectorRenderModule.activate();
+            sceneManager.setAxesVisible(true);
         } else {
             vectorRenderModule.deactivate();
             gpsRenderModule.activate();
+            sceneManager.setAxesVisible(false);
         }
     };
 
     uiManager.onHome = () => {
+        currentMode = 'HOME';
         console.log(`[Team 1] Returning to Home Screen`);
         vectorRenderModule.deactivate();
         gpsRenderModule.deactivate();
+        sceneManager.setAxesVisible(false);
     };
 });

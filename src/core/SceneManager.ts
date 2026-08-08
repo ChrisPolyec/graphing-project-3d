@@ -6,6 +6,7 @@ export class SceneManager {
     private camera: THREE.PerspectiveCamera;
     private renderer: THREE.WebGLRenderer;
     private controls: OrbitControls;
+    private axesHelper: THREE.AxesHelper;
 
     constructor(canvas: HTMLCanvasElement) {
         this.scene = new THREE.Scene();
@@ -41,8 +42,8 @@ export class SceneManager {
         this.scene.add(directionalLight);
 
         // Axes Helper for orientation
-        const axesHelper = new THREE.AxesHelper(100);
-        this.scene.add(axesHelper);
+        this.axesHelper = new THREE.AxesHelper(100);
+        this.scene.add(this.axesHelper);
 
         // Listeners
         window.addEventListener('resize', this.onWindowResize.bind(this));
@@ -69,5 +70,9 @@ export class SceneManager {
 
     public getCamera(): THREE.PerspectiveCamera {
         return this.camera;
+    }
+
+    public setAxesVisible(visible: boolean) {
+        this.axesHelper.visible = visible;
     }
 }
