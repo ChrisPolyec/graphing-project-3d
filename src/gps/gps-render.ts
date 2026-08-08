@@ -1,10 +1,12 @@
 import * as THREE from 'three';
 import { CSS2DRenderer, CSS2DObject } from 'three/addons/renderers/CSS2DRenderer.js';
+import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import type { GPSRenderModule, GPSMathResults } from '../interfaces';
 
 export class GPSRender implements GPSRenderModule {
   private scene: THREE.Scene;
   private camera: THREE.PerspectiveCamera;
+  private controls?: OrbitControls;
   
   private labelRenderer = new CSS2DRenderer();
   private earthGroup = new THREE.Group();
@@ -22,14 +24,19 @@ export class GPSRender implements GPSRenderModule {
   // Guardamos la animación ID para detenerla
   private animationFrameId: number | null = null;
 
-  constructor(scene: THREE.Scene, camera: THREE.PerspectiveCamera) {
+  constructor(scene: THREE.Scene, camera: THREE.PerspectiveCamera, controls?: OrbitControls) {
     this.scene = scene;
     this.camera = camera;
+    this.controls = controls;
 
-    // Configurar renderizador de etiquetas CSS2D
-    this.labelRenderer.setSize(window.innerWidth, window.innerHeight);
-    this.labelRenderer.domElement.style.cssText = 'position:absolute;top:0;left:0;pointer-events:none;z-index:2;display:none;';
-    document.body.appendChild(this.labelRenderer.domElement);
+    const container = document.getElementById('canvas-container') || document.body;
+    const initialWidth = container.clientWidth || window.innerWidth;
+    const initialHeight = container.clientHeight || window.innerHeight;
+
+    // Configurar renderizador de etiquetas CSS2D dentro del contenedor del canvas
+    this.labelRenderer.setSize(initialWidth, initialHeight);
+    this.labelRenderer.domElement.style.cssText = 'position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:5;display:none;';
+    container.appendChild(this.labelRenderer.domElement);
 
     this.earthGroup.name = 'GPSRenderGroup';
     // Oculto por defecto
@@ -38,24 +45,43 @@ export class GPSRender implements GPSRenderModule {
 
     this.createEarth();
 
-    window.addEventListener('resize', () => {
-        this.labelRenderer.setSize(window.innerWidth, window.innerHeight);
-    });
+    const updateSize = () => {
+        const width = container.clientWidth;
+        const height = container.clientHeight;
+        if (width > 0 && height > 0) {
+            this.labelRenderer.setSize(width, height);
+        }
+    };
+
+    const resizeObserver = new ResizeObserver(updateSize);
+    resizeObserver.observe(container);
+
+    window.addEventListener('resize', updateSize);
   }
 
   activate(): void {
     this.earthGroup.visible = true;
     this.labelRenderer.domElement.style.display = 'block';
     
-    // Agregamos luz especifica para la tierra
-    const pointLight = new THREE.PointLight(0x00d4ff, 0.5, 20);
-    pointLight.position.set(0, 5, 5);
-    this.earthGroup.add(pointLight);
-    this.lights.push(pointLight);
+    // Reset camera projection planes & position for Earth view
+    this.camera.near = 0.1;
+    this.camera.far = 20000000;
+    this.camera.position.set(0, 0, 18);
+    this.camera.lookAt(0, 0, 0);
+    this.camera.updateProjectionMatrix();
 
-    // Ajustar cámara inicial si es necesario
-    this.camera.position.set(0, 0, 15);
-    this.camera.lookAt(0,0,0);
+    if (this.controls) {
+      this.controls.target.set(0, 0, 0);
+      this.controls.update();
+    }
+
+    // Agregar luces específicas para la tierra si no están agregadas
+    if (this.lights.length === 0) {
+      const pointLight = new THREE.PointLight(0x00d4ff, 0.5, 20);
+      pointLight.position.set(0, 5, 5);
+      this.earthGroup.add(pointLight);
+      this.lights.push(pointLight);
+    }
 
     this.startAnimationLoop();
   }
@@ -86,25 +112,25 @@ export class GPSRender implements GPSRenderModule {
     const group = new THREE.Group();
     group.position.copy(visualPos);
 
-    // Esfera principal del marcador
+    // Esfera principal del marcador en morado radiante (Purple Accent)
     group.add(new THREE.Mesh(
       new THREE.SphereGeometry(0.25, 32, 32),
       new THREE.MeshPhongMaterial({ 
-        color: 0x00ff88, 
-        emissive: 0x00ff88, 
-        emissiveIntensity: 0.5, 
+        color: 0xa855f7, 
+        emissive: 0xa855f7, 
+        emissiveIntensity: 0.6, 
         specular: 0xffffff, 
         shininess: 100 
       })
     ));
 
-    // Anillo pulsante
+    // Anillo pulsante morado
     const ring = new THREE.Mesh(
       new THREE.RingGeometry(0.4, 0.6, 32),
       new THREE.MeshBasicMaterial({ 
-        color: 0x00ff88, 
+        color: 0xc084fc, 
         transparent: true, 
-        opacity: 0.3, 
+        opacity: 0.4, 
         side: THREE.DoubleSide 
       })
     );
@@ -112,17 +138,18 @@ export class GPSRender implements GPSRenderModule {
     ring.name = 'PulsingRing';
     group.add(ring);
 
-    // Etiqueta HTML
+    // Etiqueta HTML morada neumórfica
     const label = new CSS2DObject(
       Object.assign(document.createElement('div'), {
         textContent: `📍 Alt: ${data.realAltitude}m`,
         style: { 
-          color: 'white', 
-          font: 'bold 14px Arial', 
-          background: 'rgba(0,0,0,0.7)', 
+          color: '#ffffff', 
+          font: 'bold 14px "Outfit", "Inter", sans-serif', 
+          background: 'rgba(15, 10, 26, 0.85)', 
           padding: '8px 16px', 
           borderRadius: '20px', 
-          border: '2px solid #00ff88', 
+          border: '2px solid #c084fc', 
+          boxShadow: '0 0 14px rgba(168, 85, 247, 0.6)',
           backdropFilter: 'blur(10px)' 
         }
       })
@@ -153,6 +180,7 @@ export class GPSRender implements GPSRenderModule {
         emissiveIntensity: 0.1 
       })
     );
+    earth.name = 'EarthMesh';
     this.earthGroup.add(earth);
 
     // Malla de alambre (wireframe)
@@ -189,6 +217,9 @@ export class GPSRender implements GPSRenderModule {
     
     this.camera.position.lerpVectors(this.camStart, this.camEnd, ease);
     this.camera.lookAt(this.target);
+    if (this.controls) {
+      this.controls.target.copy(this.target);
+    }
     
     if (this.animProgress >= 1) this.isAnimating = false;
   }
@@ -241,3 +272,5 @@ export class GPSRender implements GPSRenderModule {
       }
   }
 }
+
+

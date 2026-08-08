@@ -21,7 +21,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Initialize Render Modules (Team 3 & Team 5)
     const vectorRenderModule = new VectorRender(scene, camera);
-    const gpsRenderModule = new GPSRender(scene, camera);
+    const gpsRenderModule = new GPSRender(scene, camera, sceneManager.getControls());
 
     let currentMode: AppMode | 'HOME' = 'HOME';
 
@@ -34,8 +34,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const handleRaycast = (event: MouseEvent, action: 'hover' | 'click') => {
         if (currentMode !== 'GPS') return;
 
-        mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
-        mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+        const rect = canvas.getBoundingClientRect();
+        if (rect.width === 0 || rect.height === 0) return;
+
+        mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+        mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
 
         raycaster.setFromCamera(mouse, camera);
 
@@ -71,8 +74,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     window.addEventListener('mousemove', (e) => handleRaycast(e, 'hover'));
     window.addEventListener('click', (e) => {
-        // Ignore clicks on the UI panel
-        if ((e.target as HTMLElement).closest('#ui-panel') || (e.target as HTMLElement).closest('#home-screen')) return;
+        // Ignore clicks on UI cards or header controls
+        const target = e.target as HTMLElement;
+        if (target.closest('#ui-panel') || target.closest('.app-header') || target.closest('.modal-overlay')) return;
         handleRaycast(e, 'click');
     });
 
@@ -143,4 +147,7 @@ document.addEventListener('DOMContentLoaded', () => {
         gpsRenderModule.deactivate();
         sceneManager.setAxesVisible(false);
     };
+
+    // Trigger initial mode activation
+    uiManager.onModeChange('VECTORS');
 });
