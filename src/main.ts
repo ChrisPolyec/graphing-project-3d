@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import './style.css';
-import { SceneManager } from './core/SceneManager';
-import { UIManager } from './core/UIManager';
+import { SceneManager } from './core/scene-manager';
+import { UIManager } from './core/ui-manager';
 import { fetchElevation } from './gps/gps-api';
 import { calculateProjectile } from './vectors/vector-math';
 import { VectorRender } from './vectors/vector-render';
